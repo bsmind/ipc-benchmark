@@ -1,7 +1,7 @@
 CXX		  := mpic++
 CXX_FLAGS := -g -Wall -Wextra -std=c++17 -O2
 
-ADIOS2_DIR := /opt/adios2
+ADIOS2_DIR := /ccs/proj/csc299/codar/sw/adios2
 ADIOS2_INC = `${ADIOS2_DIR}/bin/adios2-config --cxx-flags`
 ADIOS2_LIB = `${ADIOS2_DIR}/bin/adios2-config --cxx-libs`
 
