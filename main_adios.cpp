@@ -88,7 +88,7 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
     test_data.resize(msz_size);
 
     std::cout << "[ADIOS] Start reading ..." << std::endl;
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     while (step < msz_count)
     {
         int n_tries = 0;
@@ -102,6 +102,10 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
             break;
         }
         //std::cout << "Step: " << step << ", trie: " << n_tries << std::endl;
+
+        if (step == 0) {
+            t1 = high_resolution_clock::now();
+        }
 
         data = io.InquireVariable<char>("data");
         if (data)

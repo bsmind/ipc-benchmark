@@ -53,10 +53,13 @@ int fifo_reader(const char* path, int msz_size, int msz_num, int buffer_size, bo
     sum = 0;
 
     std::cout << "[FIFO] Start reading ..." << std::endl;
-    t1 = high_resolution_clock::now();
+    //t1 = high_resolution_clock::now();
     for (i = 0; i < msz_num; i++)
     {
         n = read(fd, buf, msz_size);
+        if (i == 0) {
+            t1 = high_resolution_clock::now();
+        }
         if (n == -1) {
             std::cerr << "Error in reading data!" << std::endl;
             delete [] buf;
