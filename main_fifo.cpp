@@ -115,10 +115,11 @@ int fifo_writer(const char* path, int msz_size, int msz_num)
         return -1;
     }
 
-    buf = new char[msz_size];
-    for (i = 0; i < msz_size; i++)
+    buf = new char[msz_size*msz_num];
+    for (i = 0; i < msz_size*msz_num; i++)
     {
-        buf[i] = (char)(i%255);
+        int num = i%msz_size;
+        buf[i] = (char)(num%255);
     }
     sum = 0;
 
@@ -126,7 +127,7 @@ int fifo_writer(const char* path, int msz_size, int msz_num)
     t1 = high_resolution_clock::now();
     for (i = 0; i < msz_num; i++)
     {
-        n = write(fd, buf, msz_size);
+        n = write(fd, buf + i*msz_size, msz_size);
         if (n != msz_size) {
             std::cerr << "Error in writing data!" << std::endl;
             delete [] buf;

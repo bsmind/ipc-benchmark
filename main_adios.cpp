@@ -27,9 +27,11 @@ int adios_writer(std::string path, unsigned long msz_size, unsigned long msz_cou
     io.SetParameters({{"RendezvousReaderCount", "1"}}); // don't wait on readers to connect
 
     data = io.DefineVariable<char>("data", {msz_size}, {0}, {msz_size}, false);
-    test_data.resize(msz_size);
-    for (i = 0; i < msz_size; i++)
-        test_data[i] = char(i%255);
+    test_data.resize(msz_size*msz_count);
+    for (i = 0; i < msz_size*msz_count; i++) {
+        unsigned long num = i%msz_size;
+        test_data[i] = char(num%255);
+    }
     //std::fill(test_data.begin(), test_data.end(), 0);
 
     writer = io.Open(path, adios2::Mode::Write);
