@@ -6,7 +6,7 @@ ADIOS2_INC = `${ADIOS2_DIR}/bin/adios2-config --cxx-flags`
 ADIOS2_LIB = `${ADIOS2_DIR}/bin/adios2-config --cxx-libs`
 
 
-all: fifo adios
+all: fifo adios shm
 
 fifo: main_fifo.cpp
 	$(CXX) $(CXX_FLAGS) -I. $^ -o $@
@@ -14,5 +14,8 @@ fifo: main_fifo.cpp
 adios: main_adios.cpp
 	$(CXX) $(CXX_FLAGS) -I. $(ADIOS2_INC) $^ -o $@ ${ADIOS2_LIB}
 
+shm: main_shm.cpp
+	$(CXX) $(CXX_FLAGS) -I. $^ -o $@ -lrt
+
 clean:
-	rm -f adios fifo
+	rm -f adios fifo shm

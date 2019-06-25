@@ -37,13 +37,14 @@ int adios_writer(std::string path, unsigned long msz_size, unsigned long msz_cou
     writer = io.Open(path, adios2::Mode::Write);
     //io.LockDefinitions();
 
-    std::cout << "[ADIOS] Start writing ..." << std::endl;
+    std::cout << "[ADIOS] Start writing: " << msz_size << ", " << msz_count << std::endl;
     t1 = high_resolution_clock::now();
     for (i = 0; i < msz_count; i++)
     {
         writer.BeginStep();
         writer.Put(data, test_data.data());
         writer.EndStep();
+        //std::cout << "Wrote " << i << "-th data!" << std::endl;
     }
     t2 = high_resolution_clock::now();
     std::cout << "[ADIOS] End writing: " << i << std::endl;
@@ -95,7 +96,9 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
         do {
             status = reader.BeginStep(adios2::StepMode::NextAvailable);
             n_tries++;
-        } while (status == adios2::StepStatus::NotReady && n_tries < 100);
+            if (status == adios2::StepStatus::NotReady)
+                this_thread::sleep_for(microseconds(100));
+        } while (status == adios2::StepStatus::NotReady && n_tries < 10000);
 
         if (status != adios2::StepStatus::OK){
             std::cout << "Terminate at " << step << "(" << n_tries << ")" << std::endl;
@@ -113,6 +116,7 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
             data.SetSelection({{0}, {msz_size}});
             //reader.Get<char>(data, test_data.data(), adios2::Mode::Sync);
             reader.Get<char>(data, test_data.data());
+            //std::cout << "Get " << step << "-th data!" << std::endl;
         }
         else
         {
