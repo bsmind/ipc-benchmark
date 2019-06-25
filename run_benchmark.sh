@@ -13,10 +13,13 @@ mpirun --allow-run-as-root -n 1 ./fifo $WRITER myfifo $MSZ_SIZE $MSZ_COUNT 0 $CH
 wait $pid_r
 echo "====== END FIFO ======"
 
-# echo "Shared"
-# mpirun -n 1 ./shm 0 $SIZE 100000 5 &
-# sleep 5
-# mpirun -n 1 ./shm 1 $SIZE 100000 5
+echo "====== BEGIN SHARED ======"
+mpirun --allow-run-as-root -n 1 ./shm $READER $MSZ_SIZE $MSZ_COUNT $CHECK &
+pid_r=$!
+sleep 1
+mpirun --allow-run-as-root -n 1 ./shm $WRITER $MSZ_SIZE $MSZ_COUNT $CHECK
+wait $pid_r
+echo "====== END SHARED ======"
 
 echo "====== BEGIN ADIOS ======"
 rm -rf *.bp*
