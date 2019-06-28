@@ -6,6 +6,8 @@
 
 #include <string.h>
 
+#define DATA_TRANSPORT "WAN"
+
 using namespace std;
 using namespace std::chrono;
 
@@ -24,7 +26,8 @@ int adios_writer(std::string path, unsigned long msz_size, unsigned long msz_cou
     ad = adios2::ADIOS(MPI_COMM_SELF, true);
     io = ad.DeclareIO("writer");
     io.SetEngine("SST");
-    io.SetParameters({{"RendezvousReaderCount", "1"}}); // don't wait on readers to connect
+    io.SetParameters({{"RendezvousReaderCount", "1"}, {"DataTransport", DATA_TRANSPORT}}); // don't wait on readers to connect
+    //io.SetParameters({{"RendezvousReaderCount", "1"}});
 
     data = io.DefineVariable<char>("data", {msz_size}, {0}, {msz_size}, false);
     test_data.resize(msz_size*msz_count);
@@ -35,13 +38,17 @@ int adios_writer(std::string path, unsigned long msz_size, unsigned long msz_cou
     //std::fill(test_data.begin(), test_data.end(), 0);
 
     writer = io.Open(path, adios2::Mode::Write);
-    //io.LockDefinitions();
 
     std::cout << "[ADIOS] Start writing: " << msz_size << ", " << msz_count << std::endl;
+    
+    // Promise that no more definitions or changes to defined variables will occur.
+    // Useful information if called before the first EndStep() of an output Engine. 
+    //writer.LockWriterDefinitions();
+
     t1 = high_resolution_clock::now();
     for (i = 0; i < msz_count; i++)
     {
-        writer.BeginStep();
+        writer.BeginStep(adios2::StepMode::Update);
         writer.Put(data, test_data.data());
         writer.EndStep();
         //std::cout << "Wrote " << i << "-th data!" << std::endl;
@@ -81,9 +88,8 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
     ad = adios2::ADIOS(MPI_COMM_SELF, true);
     io = ad.DeclareIO("reader");
     io.SetEngine("SST");
-    //io.SetParameters({{"RendezvousReaderCount", "0"}}); // don't wait on readers to connect
-
-    reader = io.Open(path, adios2::Mode::Read);
+    io.SetParameters({{"DataTransport", DATA_TRANSPORT}});
+    reader = io.Open(path, adios2::Mode::Read, MPI_COMM_SELF);
 
     step = 0;
     test_data.resize(msz_size);
@@ -94,7 +100,7 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
     {
         int n_tries = 0;
         do {
-            status = reader.BeginStep(adios2::StepMode::NextAvailable);
+            status = reader.BeginStep(adios2::StepMode::Read);
             n_tries++;
             if (status == adios2::StepStatus::NotReady)
                 this_thread::sleep_for(microseconds(100));
@@ -107,6 +113,7 @@ int adios_reader(std::string path, unsigned long msz_size, unsigned long msz_cou
         //std::cout << "Step: " << step << ", trie: " << n_tries << std::endl;
 
         if (step == 0) {
+            //reader.LockReaderSelections();
             t1 = high_resolution_clock::now();
         }
 
